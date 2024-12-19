@@ -1,0 +1,12 @@
+[package]
+name = "fan-manager"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.23", features = ["derive"] }
+console = "0.15.10"
+serde = { version = "1.0.216", features = ["derive"] }
+serde_yaml = "0.9.34"
+signal-hook = "0.3.17"
+sudo = "0.6.0"

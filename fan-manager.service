@@ -1,0 +1,11 @@
+[Unit]
+Description=Fan Manager Service
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/fan-manager -c /etc/fan-manager.yaml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
