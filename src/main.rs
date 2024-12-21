@@ -141,6 +141,8 @@ fn main() -> Result<(), Box<dyn Error>>{
         }
     });
 
+    thread::sleep(std::time::Duration::from_secs(config.fan.interval as u64));
+
     main_loop(&pwm_path, &config);
 
     Ok(())
