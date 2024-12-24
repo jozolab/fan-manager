@@ -10,7 +10,7 @@ use std::fs::File;
 use std::io::{Write};
 use std::path::{Path, PathBuf};
 use std::process::exit;
-use signal_hook::consts::{SIGTERM};
+use signal_hook::consts::{SIGINT, SIGTERM};
 use signal_hook::iterator::Signals;
 use console::Term;
 
@@ -35,15 +35,22 @@ fn average_temp() -> Result<f64, std::io::Error> {
     let mut sum = 0.0;
     let mut count = 0;
 
-    for entry in fs::read_dir(cpu_temp_dir)? {
-        let path = entry?.path();
+    let entries = fs::read_dir(cpu_temp_dir)?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+
+    for path in entries {
         if path.is_dir() && path.file_name().unwrap().to_str().unwrap().starts_with("thermal_zone") {
             let temp_path = path.join("temp");
             if temp_path.exists() {
-                let temp_contents = fs::read_to_string(temp_path)?;
-                let temp: f64 = temp_contents.trim().parse().unwrap();
-                sum += temp;
-                count += 1;
+                match fs::read_to_string(temp_path) {
+                    Ok(temp_contents) => {
+                        let temp: f64 = temp_contents.trim().parse().unwrap();
+                        sum += temp;
+                        count += 1;
+                    },
+                    Err(_) => {},
+                };
             }
         }
     }
@@ -128,7 +135,7 @@ fn main() -> Result<(), Box<dyn Error>>{
     write_file(&pwm_enable_path, "1").expect("Could not write pwm1_enable.");
     println!("fan enabled");
 
-    let mut signals = Signals::new([SIGTERM])?;
+    let mut signals = Signals::new([SIGTERM, SIGINT])?;
     thread::spawn(move || {
         for _sig in signals.forever() {
             println!("shutting down");
