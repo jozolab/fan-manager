@@ -5,6 +5,7 @@ mod cpu;
 
 use clap::Parser;
 use std::{fs, io, thread};
+use std::cmp::{max, min};
 use std::error::Error;
 use std::fs::File;
 use std::io::{Write};
@@ -103,13 +104,13 @@ fn main_loop(pwm_path: &str, config: &Config) {
         if fan_speed >= config.fan.max {
             trace(&term, format!("temperature is now {}, reached max fan speed, not updating.", avg_temp));
         } else if avg_temp > config.cpu.min as f64 && fan_speed < config.fan.max {
+            fan_speed = min(fan_speed + config.fan.step, config.fan.max);
             trace(&term, format!("temperature is now {}, increasing fan speed {}", avg_temp, fan_speed));
             write_file(pwm_path, fan_speed.to_string().as_str()).expect("Could not write pwm1.");
-            fan_speed += config.fan.step;
         } else if fan_speed > config.fan.min {
+            fan_speed = max(fan_speed - config.fan.step, config.fan.min);
             trace(&term, format!("temperature is now {}, decreasing fan speed {}", avg_temp, fan_speed));
             write_file(pwm_path, fan_speed.to_string().as_str()).expect("Could not write pwm1.");
-            fan_speed -= config.fan.step;
         } else {
             trace(&term, format!("temperature is now {}, keeping fan speed {}", avg_temp, fan_speed));
         }
