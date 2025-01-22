@@ -2,6 +2,7 @@
 
 sudo systemctl disable --now fan-manager;
 cargo build --release;
+sudo rm /usr/local/bin/fan-manager;
 sudo cp target/release/fan-manager /usr/local/bin/fan-manager;
 sudo cp fan-manager.service /etc/systemd/system/fan-manager.service;
 sudo cp fan-manager.yaml /etc/fan-manager.yaml;
