@@ -6,17 +6,17 @@ fan:
   min: 100
 
   # max fan speed value (e.g. 255)
-  max: 180
+  max: 200
 
   # step on every increase/decrease (e.g. 5)
-  step: 10
+  step: 20
 
   # sleep interval in seconds
-  interval: 2
+  interval: 5
 
 cpu:
   # target min cpu temperature (celsius)
-  min: 40
+  min: 44
 
   # target max cpu temperature (celsius)
   max: 60

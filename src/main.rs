@@ -42,17 +42,24 @@ fn average_temp() -> Result<f64, std::io::Error> {
 
     for path in entries {
         if path.is_dir() && path.file_name().unwrap().to_str().unwrap().starts_with("thermal_zone") {
-            let temp_path = path.join("temp");
-            if temp_path.exists() {
-                match fs::read_to_string(temp_path) {
-                    Ok(temp_contents) => {
-                        let temp: f64 = temp_contents.trim().parse().unwrap();
-                        sum += temp;
-                        count += 1;
-                    },
-                    Err(_) => {},
-                };
+            let type_path = path.join("type");
+            if type_path.exists() {
+                let type_contents = fs::read_to_string(type_path)?;
+                if type_contents.trim().eq("TCPU") {
+                    let temp_path = path.join("temp");
+                    if temp_path.exists() {
+                        match fs::read_to_string(temp_path) {
+                            Ok(temp_contents) => {
+                                let temp: f64 = temp_contents.trim().parse().unwrap();
+                                sum += temp;
+                                count += 1;
+                            },
+                            Err(_) => {},
+                        };
+                    }
+                }
             }
+
         }
     }
 
@@ -101,17 +108,17 @@ fn main_loop(pwm_path: &str, config: &Config) {
     loop {
         let avg_temp = average_temp().unwrap();
 
-        if fan_speed >= config.fan.max {
-            trace(&term, format!("temperature is now {}, reached max fan speed, not updating.", avg_temp));
-        } else if avg_temp > config.cpu.min as f64 && fan_speed < config.fan.max {
+         if avg_temp > config.cpu.min as f64 && fan_speed < config.fan.max {
             fan_speed = min(fan_speed + config.fan.step, config.fan.max);
             trace(&term, format!("temperature is now {}, increasing fan speed {}", avg_temp, fan_speed));
             write_file(pwm_path, fan_speed.to_string().as_str()).expect("Could not write pwm1.");
-        } else if fan_speed > config.fan.min {
+        } else if avg_temp < config.cpu.max as f64 && fan_speed > config.fan.min && fan_speed <= config.fan.max {
             fan_speed = max(fan_speed - config.fan.step, config.fan.min);
             trace(&term, format!("temperature is now {}, decreasing fan speed {}", avg_temp, fan_speed));
             write_file(pwm_path, fan_speed.to_string().as_str()).expect("Could not write pwm1.");
-        } else {
+        } else if fan_speed >= config.fan.max {
+             trace(&term, format!("temperature is now {}, reached max fan speed, not updating.", avg_temp));
+         } else {
             trace(&term, format!("temperature is now {}, keeping fan speed {}", avg_temp, fan_speed));
         }
 
