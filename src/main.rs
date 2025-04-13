@@ -149,7 +149,7 @@ fn main() -> Result<(), Box<dyn Error>>{
             println!("shutting down");
 
             // Disable fan
-            write_file(&pwm_enable_path, "0").expect("Could not write pwm1_enable.");
+            write_file(&pwm_enable_path, "2").expect("Could not write pwm1_enable.");
             println!("fan disabled");
 
             exit(0);
